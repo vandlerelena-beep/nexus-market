@@ -1,1 +1,206 @@
 
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NEXUS MARKET</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#090909;color:#f5f5f5;font-family:Arial;padding-bottom:85px}
+header{padding:25px 20px;background:linear-gradient(135deg,#211a0c,#090909);border-bottom:1px solid #59451d}
+.logo{font-size:25px;font-weight:900;letter-spacing:2px;color:#edc35c}
+.sub{color:#9b927e;font-size:12px;margin-top:7px}
+.balance{margin:18px 15px;padding:22px;background:linear-gradient(135deg,#29200e,#121212);border:1px solid #806124;border-radius:17px}
+.balance small,.muted{color:#aaa}
+.amount{font-size:34px;font-weight:bold;color:#f0c45c;margin-top:8px}
+main{padding:0 15px}
+.page{display:none}
+.page.active{display:block}
+h2{font-size:20px;margin:22px 0 14px}
+.card{background:#151515;border:1px solid #30291c;border-radius:15px;padding:17px;margin-bottom:13px}
+.card h3{margin:0 0 10px;font-size:17px}
+.muted{font-size:13px;line-height:1.5}
+.price{color:#edc35c;font-size:22px;font-weight:bold;margin:12px 0}
+button{border:0;border-radius:10px;padding:12px 16px;background:#d9ad4b;color:#17120a;font-weight:bold;font-size:14px}
+.secondary{background:#292929;color:#eee;border:1px solid #555}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.statrow{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #292929;font-size:14px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid #383020;display:flex;justify-content:space-around;padding:10px 3px}
+nav button{background:none;color:#999;padding:8px 5px;font-size:11px}
+nav button.active{color:#edc35c}
+.notice{font-size:11px;color:#817b6d;text-align:center;margin:20px 5px}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">NEXUS MARKET</div>
+<div class="sub">ТВОЯ ЦИФРОВАЯ ИМПЕРИЯ</div>
+</header>
+
+<div class="balance">
+<small>ТВОЙ ИГРОВОЙ БАЛАНС</small>
+<div class="amount"><span id="balance">1000</span> NEX</div>
+<div class="muted">Виртуальные игровые очки</div>
+</div>
+
+<main>
+<section class="page active" id="exchange">
+<h2>Виртуальная биржа</h2>
+<div class="card">
+<h3>NEX Coin</h3>
+<div class="muted">Игровая монета NEX</div>
+<div class="price" id="coinprice">10.00 NEX</div>
+<div class="muted">Демонстрационная игровая цена</div>
+<div class="actions">
+<button onclick="trade('buy')">Купить</button>
+<button class="secondary" onclick="trade('sell')">Продать</button>
+</div>
+<p class="muted" id="tradeMessage"></p>
+</div>
+<div class="card">
+<h3>Мои игровые монеты</h3>
+<div class="statrow"><span>NEX Coin</span><b id="coins">0</b></div>
+</div>
+</section>
+
+<section class="page" id="tasks">
+<h2>Задания рынка</h2>
+<div class="card">
+<h3>Аналитик дня</h3>
+<p class="muted">Изучи условную ситуацию и выбери ответ. Это учебное задание без ставок.</p>
+<p>Как изменится условный индекс?</p>
+<div class="actions">
+<button onclick="answer('Рост')">Рост</button>
+<button class="secondary" onclick="answer('Падение')">Падение</button>
+</div>
+<p class="muted" id="answerMessage"></p>
+</div>
+<div class="card">
+<h3>Ежедневный бонус</h3>
+<p class="muted">Получи игровые очки за посещение.</p>
+<button id="bonus" onclick="dailyBonus()">Получить +50 NEX</button>
+</div>
+</section>
+
+<section class="page" id="business">
+<h2>Мой бизнес</h2>
+<div class="card">
+<h3>Цифровая компания</h3>
+<p class="muted">Развивай свою виртуальную компанию и увеличивай игровой доход.</p>
+<div class="statrow"><span>Уровень</span><b id="level">1</b></div>
+<div class="statrow"><span>Доход за улучшение</span><b id="income">5 NEX</b></div>
+<div class="price">Стоимость: <span id="cost">100</span> NEX</div>
+<button onclick="upgrade()">Улучшить бизнес</button>
+<p class="muted" id="businessMessage"></p>
+</div>
+</section>
+
+<section class="page" id="profile">
+<h2>Профиль игрока</h2>
+<div class="card">
+<h3 id="player">Игрок NEXUS</h3>
+<div class="statrow"><span>Баланс</span><b id="profileBalance">1000 NEX</b></div>
+<div class="statrow"><span>Монеты</span><b id="profileCoins">0</b></div>
+<div class="statrow"><span>Уровень бизнеса</span><b id="profileLevel">1</b></div>
+<div class="statrow"><span>Статус</span><b style="color:#edc35c">Новичок</b></div>
+</div>
+</section>
+</main>
+
+<nav>
+<button class="active" onclick="showPage('exchange',this)">Биржа</button>
+<button onclick="showPage('tasks',this)">Задания</button>
+<button onclick="showPage('business',this)">Бизнес</button>
+<button onclick="showPage('profile',this)">Профиль</button>
+</nav>
+
+<p class="notice">NEX — виртуальные игровые очки. Не являются криптовалютой или деньгами. Данные демонстрационные и хранятся только в этой странице.</p>
+
+<script>
+const tg=window.Telegram&&window.Telegram.WebApp;
+if(tg){tg.ready();tg.expand();}
+
+let balance=1000;
+let coins=0;
+let level=1;
+let bonusUsed=false;
+let taskDone=false;
+let price=10;
+
+function update(){
+document.getElementById('balance').textContent=balance;
+document.getElementById('coins').textContent=coins;
+document.getElementById('profileBalance').textContent=balance+' NEX';
+document.getElementById('profileCoins').textContent=coins;
+document.getElementById('profileLevel').textContent=level;
+document.getElementById('level').textContent=level;
+document.getElementById('income').textContent=(level*5)+' NEX';
+document.getElementById('cost').textContent=level*100;
+document.getElementById('coinprice').textContent=price.toFixed(2)+' NEX';
+}
+
+function trade(type){
+if(type==='buy'){
+if(balance<price){
+document.getElementById('tradeMessage').textContent='Недостаточно NEX.';
+return;
+}
+balance-=price;
+coins++;
+document.getElementById('tradeMessage').textContent='Монета куплена!';
+}else{
+if(coins<1){
+document.getElementById('tradeMessage').textContent='У тебя пока нет монет.';
+return;
+}
+coins--;
+balance+=price;
+document.getElementById('tradeMessage').textContent='Монета продана!';
+}
+update();
+}
+
+function answer(choice){
+let msg=document.getElementById('answerMessage');
+if(taskDone){msg.textContent='Задание уже выполнено.';return;}
+taskDone=true;
+balance+=20;
+msg.textContent='Ответ принят! +20 NEX за участие.';
+update();
+}
+
+function dailyBonus(){
+if(bonusUsed)return;
+bonusUsed=true;
+balance+=50;
+document.getElementById('bonus').textContent='Бонус получен';
+update();
+}
+
+function upgrade(){
+let cost=level*100;
+let msg=document.getElementById('businessMessage');
+if(balance<cost){msg.textContent='Недостаточно NEX для улучшения.';return;}
+balance-=cost;
+level++;
+msg.textContent='Компания улучшена!';
+update();
+}
+
+function showPage(id,btn){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+}
+
+if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user){
+document.getElementById('player').textContent=tg.initDataUnsafe.user.first_name||'Игрок NEXUS';
+}
+update();
+</script>
+</body>
+</html>
+

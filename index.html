@@ -135,6 +135,7 @@ document.getElementById('coins').textContent=coins;
 document.getElementById('profileBalance').textContent=balance+' NEX';
 document.getElementById('profileCoins').textContent=coins;
 document.getElementById('profileLevel').textContent=level;
+  localStorage.setItem('nex_balance', balance);
 document.getElementById('level').textContent=level;
 document.getElementById('income').textContent=(level*5)+' NEX';
 document.getElementById('cost').textContent=level*100;

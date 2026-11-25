@@ -123,7 +123,7 @@ const tg=window.Telegram&&window.Telegram.WebApp;
 if(tg){tg.ready();tg.expand();}
 
 let balance = Number(localStorage.getItem("nex_balance")) || 1000;
-let coins=0;
+let coins = Number(localStorage.getItem('nex_coins')) || 0;
 let level=1;
 let bonusUsed=false;
 let taskDone=false;
@@ -132,6 +132,7 @@ let price=10;
 function update(){
 document.getElementById('balance').textContent=balance;
 document.getElementById('coins').textContent=coins;
+  localStorage.setItem('nex_coins', coins);
 document.getElementById('profileBalance').textContent=balance+' NEX';
 document.getElementById('profileCoins').textContent=coins;
 document.getElementById('profileLevel').textContent=level;

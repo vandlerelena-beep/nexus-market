@@ -124,7 +124,7 @@ if(tg){tg.ready();tg.expand();}
 
 let balance = Number(localStorage.getItem("nex_balance")) || 1000;
 let coins = Number(localStorage.getItem('nex_coins')) || 0;
-let level=1;
+let level = Number(localStorage.getItem("nex_level")) || 1;
 let bonusUsed=false;
 let taskDone=false;
 let price=10;
@@ -137,6 +137,7 @@ document.getElementById('profileBalance').textContent=balance+' NEX';
 document.getElementById('profileCoins').textContent=coins;
 document.getElementById('profileLevel').textContent=level;
   localStorage.setItem('nex_balance', balance);
+  localStorage.setItem('nex_level', level);
 document.getElementById('level').textContent=level;
 document.getElementById('income').textContent=(level*5)+' NEX';
 document.getElementById('cost').textContent=level*100;

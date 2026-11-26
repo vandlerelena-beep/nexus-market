@@ -212,9 +212,9 @@ update();
 
 function answer(task, choice){
 let rewards = {
-analyst: {balance:20, xp:25, message:'Аналитик дня'},
-research: {balance:35, xp:40, message:'Исследователь рынка'},
-strategy: {balance:50, xp:60, message:'Бизнес-стратег'}
+analyst: {balance:20, xp:30},
+research: {balance:35, xp:40},
+strategy: {balance:50, xp:50}
 };
 
 let messages = {
@@ -241,8 +241,9 @@ xp += rewards[task].xp;
 checkLevel();
 update();
 
-msg.textContent='Выполнено! +' + rewards[task].balance + ' NEX и +' + rewards[task].xp + ' XP.';
+msg.closest('.card').remove();
 }
+
 
 
 function dailyBonus(){
@@ -290,6 +291,24 @@ if(tg&&tg.initDataUnsafe&&tg.initDataUnsafe.user){
 document.getElementById('player').textContent=tg.initDataUnsafe.user.first_name||'Игрок NEXUS';
 }
 update();
+  function hideCompletedTasks(){
+let tasks = {
+analyst: 'analystMessage',
+research: 'researchMessage',
+strategy: 'strategyMessage'
+};
+
+for(let task in tasks){
+if(completedTasks[task]){
+let msg = document.getElementById(tasks[task]);
+if(msg){
+msg.closest('.card').remove();
+}
+}
+}
+}
+
+hideCompletedTasks();
 </script>
 </body>
 </html>

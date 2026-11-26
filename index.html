@@ -298,9 +298,7 @@ const dailyTaskRewards = {
 };
 
 let dailyTasks = [];
-let completedDailyTasks = JSON.parse(
-    localStorage.getItem('nex_daily_completed_v3') || '{}'
-);
+
 
 function getTodayKey(){
     let now = new Date();

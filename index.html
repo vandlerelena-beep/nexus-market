@@ -949,6 +949,71 @@ tradeChartTimer = setInterval(updateTradeChart, 1000);
 for(let i = 0; i < 30; i++){
     updateTradeChart();
 }
+// NEXUS TRADE — система прогнозов
+
+function makeTradePrediction(direction){
+
+    if(tradePrediction !== null){
+        showToast('Дождись завершения раунда!', 'error');
+        return;
+    }
+
+    tradePrediction = direction;
+    tradeRoundStartPrice = tradeChartPrice;
+
+    let seconds = 10;
+
+    document.getElementById('tradeResult').textContent =
+        'Твой прогноз: ' +
+        (direction === 'up' ? 'ВВЕРХ 🟢' : 'ВНИЗ 🔴');
+
+    document.getElementById('tradeTimer').textContent =
+        'Раунд ' + tradeRound + ': ' + seconds + ' секунд';
+
+    let countdown = setInterval(function(){
+
+        seconds--;
+
+        document.getElementById('tradeTimer').textContent =
+            'Раунд ' + tradeRound + ': ' + seconds + ' секунд';
+
+        if(seconds <= 0){
+
+            clearInterval(countdown);
+
+            let wentUp = tradeChartPrice > tradeRoundStartPrice;
+
+            let correct =
+                (direction === 'up' && wentUp) ||
+                (direction === 'down' && !wentUp);
+
+            if(correct){
+
+                balance += 10;
+                update();
+
+                document.getElementById('tradeResult').textContent =
+                    'Правильно! +10 NEX 🎉';
+
+                showToast('Прогноз верный! +10 NEX', 'success');
+
+            }else{
+
+                document.getElementById('tradeResult').textContent =
+                    'Прогноз не совпал. Попробуй ещё раз!';
+
+                showToast('Прогноз не совпал!', 'error');
+            }
+
+            tradePrediction = null;
+            tradeRound++;
+
+            document.getElementById('tradeTimer').textContent =
+                'Раунд ' + tradeRound + ': ожидание';
+        }
+
+    }, 1000);
+}
 </script>
 </body>
 </html>

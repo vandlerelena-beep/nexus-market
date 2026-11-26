@@ -80,7 +80,7 @@ nav button.active{color:#edc35c}
 <div class="card">
 <h3>Ежедневный бонус</h3>
 <p class="muted">Получи игровые очки за посещение.</p>
-<button id="bonus" onclick="dailyBonus()">Получить +50 NEX</button>
+<button id="bonus" onclick="dailyBonus()">Получить +50 NEX и +30 XP</button>
 </div>
 </section>
 
@@ -129,7 +129,7 @@ let coins = Number(localStorage.getItem('nex_coins')) || 0;
 let level = Number(localStorage.getItem("nex_level")) || 1;
   let xp = Number(localStorage.getItem("nex_xp")) || 0;
   let playerLevel = Number(localStorage.getItem("nex_player_level")) || 1;
-let bonusUsed=false;
+let bonusUsed = localStorage.getItem('nex_bonus_used') === 'true';
 let taskDone=false;
 let price=10;
 
@@ -193,10 +193,24 @@ update();
 }
 
 function dailyBonus(){
-if(bonusUsed)return;
-bonusUsed=true;
-balance+=50;
+let lastBonus = localStorage.getItem('nex_last_bonus');
+let today = new Date().toLocaleDateString();
+
+if(lastBonus === today){
+document.getElementById('answerMessage').textContent='Бонус уже получен сегодня!';
+return;
+}
+
+localStorage.setItem('nex_last_bonus', today);
+
+bonusUsed = true;
+balance += 50;
+xp += 30;
+
+checkLevel();
 document.getElementById('bonus').textContent='Бонус получен';
+document.getElementById('answerMessage').textContent='Получено +50 NEX и +30 XP!';
+
 update();
 }
 

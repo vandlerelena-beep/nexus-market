@@ -521,7 +521,7 @@ function renderDailyTasks(){
     container.innerHTML = '';
 
     dailyTasks.forEach((task, index) => {
-      if(completedDailyTasks[task.id]) return;
+      if(completedDailyTasks[task.id] === true) return;
         let card = document.createElement('div');
         card.className = 'card';
 

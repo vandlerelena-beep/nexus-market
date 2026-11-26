@@ -65,18 +65,46 @@ nav button.active{color:#edc35c}
 </div>
 </section>
 
+
 <section class="page" id="tasks">
 <h2>Задания рынка</h2>
+
 <div class="card">
 <h3>Аналитик дня</h3>
-<p class="muted">Изучи условную ситуацию и выбери ответ. Это учебное задание без ставок.</p>
+<p class="muted">Изучи условную ситуацию и выбери ответ.</p>
 <p>Как изменится условный индекс?</p>
+<p style="color:#edc35c">Награда: +20 NEX и +25 XP</p>
 <div class="actions">
-<button onclick="answer('Рост')">Рост</button>
-<button class="secondary" onclick="answer('Падение')">Падение</button>
+<button onclick="answer('analyst','Рост')">Рост</button>
+<button class="secondary" onclick="answer('analyst','Падение')">Падение</button>
 </div>
-<p class="muted" id="answerMessage"></p>
+<p class="muted" id="analystMessage"></p>
 </div>
+
+<div class="card">
+<h3>Исследователь рынка</h3>
+<p class="muted">Выбери, что помогает изучать рынок.</p>
+<p>Что нужно анализировать?</p>
+<p style="color:#edc35c">Награда: +35 NEX и +40 XP</p>
+<div class="actions">
+<button onclick="answer('research','Данные')">Данные</button>
+<button class="secondary" onclick="answer('research','Случайность')">Случайность</button>
+</div>
+<p class="muted" id="researchMessage"></p>
+</div>
+
+<div class="card">
+<h3>Бизнес-стратег</h3>
+<p class="muted">Выбери разумное решение для компании.</p>
+<p>Что помогает развивать бизнес?</p>
+<p style="color:#edc35c">Награда: +50 NEX и +60 XP</p>
+<div class="actions">
+<button onclick="answer('strategy','Планирование')">Планирование</button>
+<button class="secondary" onclick="answer('strategy','Без плана')">Без плана</button>
+</div>
+<p class="muted" id="strategyMessage"></p>
+</div>
+
 <div class="card">
 <h3>Ежедневный бонус</h3>
 <p class="muted">Получи игровые очки за посещение.</p>
@@ -131,7 +159,7 @@ let level = Number(localStorage.getItem("nex_level")) || 1;
   let xp = Number(localStorage.getItem("nex_xp")) || 0;
   let playerLevel = Number(localStorage.getItem("nex_player_level")) || 1;
 let bonusUsed = localStorage.getItem('nex_bonus_used') === 'true';
-let taskDone=false;
+  let completedTasks = JSON.parse(localStorage.getItem('nex_completed_tasks') || '{}');
 let price=10;
 
 function update(){
@@ -181,17 +209,41 @@ document.getElementById('tradeMessage').textContent='Монета продана
 update();
 }
 
-function answer(choice){
-let msg=document.getElementById('answerMessage');
-if(taskDone){msg.textContent='Задание уже выполнено.';return;}
-taskDone=true;
-balance+=20;
-xp+=25;
-  checkLevel();
-update();
-msg.textContent='Ответ принят! +20 NEX за участие.';
-update();
+
+function answer(task, choice){
+let rewards = {
+analyst: {balance:20, xp:25, message:'Аналитик дня'},
+research: {balance:35, xp:40, message:'Исследователь рынка'},
+strategy: {balance:50, xp:60, message:'Бизнес-стратег'}
+};
+
+let messages = {
+analyst: 'analystMessage',
+research: 'researchMessage',
+strategy: 'strategyMessage'
+};
+
+let msg = document.getElementById(messages[task]);
+
+if(!rewards[task]) return;
+
+if(completedTasks[task]){
+msg.textContent='Это задание уже выполнено!';
+return;
 }
+
+completedTasks[task] = true;
+localStorage.setItem('nex_completed_tasks', JSON.stringify(completedTasks));
+
+balance += rewards[task].balance;
+xp += rewards[task].xp;
+
+checkLevel();
+update();
+
+msg.textContent='Выполнено! +' + rewards[task].balance + ' NEX и +' + rewards[task].xp + ' XP.';
+}
+
 
 function dailyBonus(){
 let lastBonus = localStorage.getItem('nex_last_bonus');

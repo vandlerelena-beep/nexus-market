@@ -104,6 +104,8 @@ nav button.active{color:#edc35c}
 <div class="statrow"><span>Баланс</span><b id="profileBalance">1000 NEX</b></div>
 <div class="statrow"><span>Монеты</span><b id="profileCoins">0</b></div>
 <div class="statrow"><span>Уровень бизнеса</span><b id="profileLevel">1</b></div>
+  <div class="statrow"><span>Уровень игрока</span><b id="playerLevel">1</b></div>
+  <div class="statrow"><span>Опыт (XP)</span><b id="profileXP">0</b></div>
 <div class="statrow"><span>Статус</span><b style="color:#edc35c">Новичок</b></div>
 </div>
 </section>
@@ -125,6 +127,8 @@ if(tg){tg.ready();tg.expand();}
 let balance = Number(localStorage.getItem("nex_balance")) || 1000;
 let coins = Number(localStorage.getItem('nex_coins')) || 0;
 let level = Number(localStorage.getItem("nex_level")) || 1;
+  let xp = Number(localStorage.getItem("nex_xp")) || 0;
+  let playerLevel = Number(localStorage.getItem("nex_player_level")) || 1;
 let bonusUsed=false;
 let taskDone=false;
 let price=10;
@@ -136,14 +140,25 @@ document.getElementById('coins').textContent=coins;
 document.getElementById('profileBalance').textContent=balance+' NEX';
 document.getElementById('profileCoins').textContent=coins;
 document.getElementById('profileLevel').textContent=level;
+  document.getElementById('playerLevel').textContent=playerLevel;
   localStorage.setItem('nex_balance', balance);
   localStorage.setItem('nex_level', level);
 document.getElementById('level').textContent=level;
+  document.getElementById('profileXP').textContent=xp;
+localStorage.setItem('nex_xp', xp);
 document.getElementById('income').textContent=(level*5)+' NEX';
 document.getElementById('cost').textContent=level*100;
 document.getElementById('coinprice').textContent=price.toFixed(2)+' NEX';
 }
+function checkLevel(){
+let newLevel = Math.floor(xp / 100) + 1;
 
+if(newLevel > playerLevel){
+playerLevel = newLevel;
+localStorage.setItem('nex_player_level', playerLevel);
+alert('Поздравляем! Новый уровень игрока: ' + playerLevel);
+}
+}
 function trade(type){
 if(type==='buy'){
 if(balance<price){
@@ -170,6 +185,9 @@ let msg=document.getElementById('answerMessage');
 if(taskDone){msg.textContent='Задание уже выполнено.';return;}
 taskDone=true;
 balance+=20;
+xp+=25;
+  checkLevel();
+update();
 msg.textContent='Ответ принят! +20 NEX за участие.';
 update();
 }
@@ -188,6 +206,8 @@ let msg=document.getElementById('businessMessage');
 if(balance<cost){msg.textContent='Недостаточно NEX для улучшения.';return;}
 balance-=cost;
 level++;
+xp+=50;
+  checkLevel();
 msg.textContent='Компания улучшена!';
 update();
 }

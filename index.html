@@ -105,43 +105,11 @@ border-color:#e05252;
 
 <section class="page" id="tasks">
 <h2>Задания рынка</h2>
-
-<div class="card">
-<h3>Аналитик дня</h3>
-<p class="muted">Изучи условную ситуацию и выбери ответ.</p>
-<p>Как изменится условный индекс?</p>
-<p style="color:#edc35c">Награда: +40 NEX и +20 XP</p>
-<div class="actions">
-<button onclick="answer('analyst','Рост')">Рост</button>
-<button class="secondary" onclick="answer('analyst','Падение')">Падение</button>
+  
+  <div id="dailyTasks">
+    <p class="muted">Загрузка ежедневных заданий...</p>
 </div>
-<p class="muted" id="analystMessage"></p>
-</div>
-
-<div class="card">
-<h3>Исследователь рынка</h3>
-<p class="muted">Выбери, что помогает изучать рынок.</p>
-<p>Что нужно анализировать?</p>
-<p style="color:#edc35c">Награда: +40 NEX и +20 XP</p>
-<div class="actions">
-<button onclick="answer('research','Данные')">Данные</button>
-<button class="secondary" onclick="answer('research','Случайность')">Случайность</button>
-</div>
-<p class="muted" id="researchMessage"></p>
-</div>
-
-<div class="card">
-<h3>Бизнес-стратег</h3>
-<p class="muted">Выбери разумное решение для компании.</p>
-<p>Что помогает развивать бизнес?</p>
-<p style="color:#edc35c">Награда: +40 NEX и +20 XP</p>
-<div class="actions">
-<button onclick="answer('strategy','Планирование')">Планирование</button>
-<button class="secondary" onclick="answer('strategy','Без плана')">Без плана</button>
-</div>
-<p class="muted" id="strategyMessage"></p>
-</div>
-
+  
 <div class="card">
 <h3>Ежедневный бонус</h3>
 <p class="muted">Получи игровые очки за посещение.</p>
@@ -305,51 +273,145 @@ function trade(type){
     }
 }
 
-function answer(task, choice){
+const taskCategories = [
+    'Бизнес',
+    'Финансы',
+    'Трейдинг',
+    'Криптовалюта',
+    'Инвестиции',
+    'Производство',
+    'Торговля',
+    'Стратегия',
+    'Управление',
+    'Рынок'
+];
 
-    let correctAnswers = {
-        analyst: 'Рост',
-        research: 'Данные',
-        strategy: 'Планирование'
-    };
+const dailyTaskRewards = {
+    nex: 40,
+    xp: 20
+};
 
-    let msgIds = {
-        analyst: 'analystMessage',
-        research: 'researchMessage',
-        strategy: 'strategyMessage'
-    };
+let dailyTasks = [];
+let completedDailyTasks = JSON.parse(
+    localStorage.getItem('nex_daily_completed_v3') || '{}'
+);
 
-    if(!correctAnswers[task]) return;
+function getTodayKey(){
+    let now = new Date();
+    return now.getFullYear() + '-' +
+        (now.getMonth() + 1) + '-' +
+        now.getDate();
+}
 
-    if(completedTasks[task]) return;
+function generateDailyTasks(){
+    let day = Math.floor(
+        new Date(
+            new Date().getFullYear(),
+            new Date().getMonth(),
+            new Date().getDate()
+        ).getTime() / 86400000
+    );
 
-    if(choice !== correctAnswers[task]){
+    let questions = [
+        {category:'Бизнес', title:'Бизнес-стратег', question:'Что помогает компании развиваться?', answers:['Планирование','Отсутствие целей'], correct:0},
+        {category:'Криптовалюта', title:'Криптоаналитик', question:'Что показывает цена криптовалюты?', answers:['Её рыночную стоимость','Количество сотрудников'], correct:0},
+        {category:'Торговля', title:'Специалист торговли', question:'Что такое прибыль?', answers:['Доход после вычета расходов','Все расходы компании'], correct:0},
+        {category:'Финансы', title:'Финансист', question:'Что такое бюджет?', answers:['План доходов и расходов','Список товаров'], correct:0},
+        {category:'Трейдинг', title:'Трейдер', question:'Что означает рост цены актива?', answers:['Цена стала выше','Цена стала ниже'], correct:0},
+        {category:'Инвестиции', title:'Инвестор', question:'Что означает диверсификация?', answers:['Распределение вложений','Вложение всего в один актив'], correct:0},
+        {category:'Производство', title:'Менеджер производства', question:'Что помогает снизить себестоимость?', answers:['Эффективное использование ресурсов','Увеличение потерь'], correct:0},
+        {category:'Стратегия', title:'Стратег', question:'Зачем компании долгосрочная стратегия?', answers:['Чтобы планировать развитие','Чтобы отказаться от целей'], correct:0},
+        {category:'Управление', title:'Управленец', question:'Что помогает организовать работу команды?', answers:['Распределение задач','Отсутствие обязанностей'], correct:0},
+        {category:'Рынок', title:'Аналитик рынка', question:'Что влияет на спрос?', answers:['Цена и потребности покупателей','Только цвет упаковки'], correct:0}
+    ];
+
+    let start = (day * 3) % questions.length;
+    dailyTasks = [];
+
+    for(let i = 0; i < 3; i++){
+        let task = questions[(start + i) % questions.length];
+task.id = getTodayKey() + '_' + (start + i);
+dailyTasks.push(task);
+    }
+
+    renderDailyTasks();
+}
+
+function renderDailyTasks(){
+    let container = document.getElementById('dailyTasks');
+    if(!container) return;
+
+    container.innerHTML = '';
+
+    dailyTasks.forEach((task, index) => {
+      if(completedDailyTasks[task.id]) return;
+        let card = document.createElement('div');
+        card.className = 'card';
+
+        let title = document.createElement('h3');
+        title.textContent = task.title;
+
+        let category = document.createElement('p');
+        category.className = 'muted';
+        category.textContent = task.category;
+
+        let question = document.createElement('p');
+        question.textContent = task.question;
+
+        let reward = document.createElement('p');
+        reward.style.color = '#edc35c';
+        reward.textContent = 'Награда: +40 NEX и +20 XP';
+
+        let actions = document.createElement('div');
+        actions.className = 'actions';
+
+        task.answers.forEach((answer, answerIndex) => {
+            let button = document.createElement('button');
+            button.textContent = answer;
+            if(answerIndex !== 0) button.className = 'secondary';
+            button.onclick = () => answerDailyTask(index, answerIndex);
+            actions.appendChild(button);
+        });
+
+        card.append(title, category, question, reward, actions);
+        container.appendChild(card);
+    });
+  
+      if(container.children.length === 0){
+        container.innerHTML = '<div class="card"><h3>Все задания выполнены!</h3><p class="muted">Новые задания появятся завтра.</p></div>';
+    }
+}
+
+function answerDailyTask(taskIndex, answerIndex){
+    let task = dailyTasks[taskIndex];
+    if(!task || completedDailyTasks[task.id]) return;
+
+    if(answerIndex !== task.correct){
         showToast('Задание не выполнено!', 'error');
         return;
     }
 
-    completedTasks[task] = true;
-
+    completedDailyTasks[task.id] = true;
     localStorage.setItem(
-        'nex_completed_tasks_v2',
-        JSON.stringify(completedTasks)
+        'nex_daily_completed_v3',
+        JSON.stringify(completedDailyTasks)
     );
 
-    balance += 40;
-    xp += 20;
+    balance += dailyTaskRewards.nex;
+    xp += dailyTaskRewards.xp;
 
-   let leveledUp = checkLevel();
+    let leveledUp = checkLevel();
+    update();
 
-update();
+    if(leveledUp){
+        showToast('Новый уровень игрока: ' + playerLevel + '!', 'success');
+    }
 
-if(leveledUp){
-    showToast('Новый уровень игрока: ' + playerLevel + '!', 'success');
+    showToast('Задание выполнено! +20 XP и +40 NEX', 'success');
+    renderDailyTasks();
 }
 
-showToast('Задание выполнено! +20 XP и +40 NEX', 'success');
-    document.getElementById(msgIds[task]).closest('.card').remove();
-}
-
+generateDailyTasks();
 
 function dailyBonus(){
 

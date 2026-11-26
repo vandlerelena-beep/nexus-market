@@ -31,9 +31,46 @@ nav{position:fixed;bottom:0;left:0;right:0;background:#111;border-top:1px solid 
 nav button{background:none;color:#999;padding:8px 5px;font-size:11px}
 nav button.active{color:#edc35c}
 .notice{font-size:11px;color:#817b6d;text-align:center;margin:20px 5px}
+  
+.toast{
+position:fixed;
+bottom:85px;
+left:50%;
+transform:translate(-50%,20px);
+background:#202020;
+color:white;
+padding:14px 20px;
+border-radius:12px;
+border:1px solid #444;
+font-size:14px;
+font-weight:bold;
+text-align:center;
+opacity:0;
+visibility:hidden;
+transition:all .3s ease;
+z-index:9999;
+width:max-content;
+max-width:90%;
+}
+
+.toast.show{
+opacity:1;
+visibility:visible;
+transform:translate(-50%,0);
+}
+
+.toast.success{
+border-color:#4caf50;
+}
+
+.toast.error{
+border-color:#e05252;
+}
+
 </style>
 </head>
 <body>
+  <div id="toast" class="toast"></div>
 <header>
 <div class="logo">NEXUS MARKET</div>
 <div class="sub">ТВОЯ ЦИФРОВАЯ ИМПЕРИЯ</div>
@@ -73,7 +110,7 @@ nav button.active{color:#edc35c}
 <h3>Аналитик дня</h3>
 <p class="muted">Изучи условную ситуацию и выбери ответ.</p>
 <p>Как изменится условный индекс?</p>
-<p style="color:#edc35c">Награда: +20 NEX и +25 XP</p>
+<p style="color:#edc35c">Награда: +40 NEX и +20 XP</p>
 <div class="actions">
 <button onclick="answer('analyst','Рост')">Рост</button>
 <button class="secondary" onclick="answer('analyst','Падение')">Падение</button>
@@ -85,7 +122,7 @@ nav button.active{color:#edc35c}
 <h3>Исследователь рынка</h3>
 <p class="muted">Выбери, что помогает изучать рынок.</p>
 <p>Что нужно анализировать?</p>
-<p style="color:#edc35c">Награда: +35 NEX и +40 XP</p>
+<p style="color:#edc35c">Награда: +40 NEX и +20 XP</p>
 <div class="actions">
 <button onclick="answer('research','Данные')">Данные</button>
 <button class="secondary" onclick="answer('research','Случайность')">Случайность</button>
@@ -97,7 +134,7 @@ nav button.active{color:#edc35c}
 <h3>Бизнес-стратег</h3>
 <p class="muted">Выбери разумное решение для компании.</p>
 <p>Что помогает развивать бизнес?</p>
-<p style="color:#edc35c">Награда: +50 NEX и +60 XP</p>
+<p style="color:#edc35c">Награда: +40 NEX и +20 XP</p>
 <div class="actions">
 <button onclick="answer('strategy','Планирование')">Планирование</button>
 <button class="secondary" onclick="answer('strategy','Без плана')">Без плана</button>
@@ -150,6 +187,19 @@ nav button.active{color:#edc35c}
 <p class="notice">NEX — виртуальные игровые очки. Не являются криптовалютой или деньгами. Данные демонстрационные и хранятся только в этой странице.</p>
 
 <script>
+  let toastTimer;
+
+function showToast(message, type){
+    let toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast show ' + type;
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(function(){
+        toast.className = 'toast';
+    }, 2500);
+}
 const tg=window.Telegram&&window.Telegram.WebApp;
 if(tg){tg.ready();tg.expand();}
 
@@ -211,39 +261,45 @@ update();
 
 
 function answer(task, choice){
-let rewards = {
-analyst: {balance:20, xp:30},
-research: {balance:35, xp:40},
-strategy: {balance:50, xp:50}
-};
 
-let messages = {
-analyst: 'analystMessage',
-research: 'researchMessage',
-strategy: 'strategyMessage'
-};
+    let correctAnswers = {
+        analyst: 'Рост',
+        research: 'Данные',
+        strategy: 'Планирование'
+    };
 
-let msg = document.getElementById(messages[task]);
+    let msgIds = {
+        analyst: 'analystMessage',
+        research: 'researchMessage',
+        strategy: 'strategyMessage'
+    };
 
-if(!rewards[task]) return;
+    if(!correctAnswers[task]) return;
 
-if(completedTasks[task]){
-msg.textContent='Это задание уже выполнено!';
-return;
+    if(completedTasks[task]) return;
+
+    if(choice !== correctAnswers[task]){
+        showToast('Задание не выполнено!', 'error');
+        return;
+    }
+
+    completedTasks[task] = true;
+
+    localStorage.setItem(
+        'nex_completed_tasks_v2',
+        JSON.stringify(completedTasks)
+    );
+
+    balance += 40;
+    xp += 20;
+
+    checkLevel();
+    update();
+
+    showToast('Задание выполнено! +20 XP и +40 NEX', 'success');
+
+    document.getElementById(msgIds[task]).closest('.card').remove();
 }
-
-completedTasks[task] = true;
-localStorage.setItem('nex_completed_tasks_v2', JSON.stringify(completedTasks));
-
-balance += rewards[task].balance;
-xp += rewards[task].xp;
-
-checkLevel();
-update();
-
-msg.closest('.card').remove();
-}
-
 
 
 function dailyBonus(){

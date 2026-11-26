@@ -208,7 +208,13 @@ let level = Number(localStorage.getItem("nex_level")) || 1;
   let xp = Number(localStorage.getItem("nex_xp")) || 0;
   let playerLevel = Number(localStorage.getItem("nex_player_level")) || 1;
 let bonusUsed = localStorage.getItem('nex_bonus_used') === 'true';
-  let completedTasks = JSON.parse(localStorage.getItem('nex_completed_tasks_v2') || '{}');
+ let completedDailyTasks = JSON.parse(
+    localStorage.getItem('nex_daily_completed_v4') || '{}'
+);
+
+let usedTaskIds = JSON.parse(
+    localStorage.getItem('nex_used_task_ids_v1') || '[]'
+);
 let price=10;
 
 function update(){
@@ -303,36 +309,207 @@ function getTodayKey(){
         now.getDate();
 }
 
+  function saveUsedTaskIds(){
+    localStorage.setItem(
+        'nex_used_task_ids_v1',
+        JSON.stringify(usedTaskIds)
+    );
+}
+
+
 function generateDailyTasks(){
-    let day = Math.floor(
-        new Date(
-            new Date().getFullYear(),
-            new Date().getMonth(),
-            new Date().getDate()
-        ).getTime() / 86400000
+
+    const startDate = Date.UTC(2026, 10, 26);
+    const now = new Date();
+
+    const todayNumber = Date.UTC(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate()
     );
 
-    let questions = [
-        {category:'Бизнес', title:'Бизнес-стратег', question:'Что помогает компании развиваться?', answers:['Планирование','Отсутствие целей'], correct:0},
-        {category:'Криптовалюта', title:'Криптоаналитик', question:'Что показывает цена криптовалюты?', answers:['Её рыночную стоимость','Количество сотрудников'], correct:0},
-        {category:'Торговля', title:'Специалист торговли', question:'Что такое прибыль?', answers:['Доход после вычета расходов','Все расходы компании'], correct:0},
-        {category:'Финансы', title:'Финансист', question:'Что такое бюджет?', answers:['План доходов и расходов','Список товаров'], correct:0},
-        {category:'Трейдинг', title:'Трейдер', question:'Что означает рост цены актива?', answers:['Цена стала выше','Цена стала ниже'], correct:0},
-        {category:'Инвестиции', title:'Инвестор', question:'Что означает диверсификация?', answers:['Распределение вложений','Вложение всего в один актив'], correct:0},
-        {category:'Производство', title:'Менеджер производства', question:'Что помогает снизить себестоимость?', answers:['Эффективное использование ресурсов','Увеличение потерь'], correct:0},
-        {category:'Стратегия', title:'Стратег', question:'Зачем компании долгосрочная стратегия?', answers:['Чтобы планировать развитие','Чтобы отказаться от целей'], correct:0},
-        {category:'Управление', title:'Управленец', question:'Что помогает организовать работу команды?', answers:['Распределение задач','Отсутствие обязанностей'], correct:0},
-        {category:'Рынок', title:'Аналитик рынка', question:'Что влияет на спрос?', answers:['Цена и потребности покупателей','Только цвет упаковки'], correct:0}
-    ];
+    const dayIndex = Math.max(
+        0,
+        Math.floor((todayNumber - startDate) / 86400000)
+    );
 
-    let start = (day * 3) % questions.length;
+    const today = getTodayKey();
+
+    let savedDate = localStorage.getItem('nex_daily_tasks_date_v1');
+    let savedTasks = localStorage.getItem('nex_daily_tasks_v1');
+
+    if(savedDate === today && savedTasks){
+        dailyTasks = JSON.parse(savedTasks);
+        renderDailyTasks();
+        return;
+    }
+
     dailyTasks = [];
 
+    let difficulty = Math.min(
+        5,
+        Math.max(1, Math.floor((Number(playerLevel) || 1) / 3) + 1)
+    );
+
     for(let i = 0; i < 3; i++){
-        let task = questions[(start + i) % questions.length];
-task.id = getTodayKey() + '_' + (start + i);
-dailyTasks.push(task);
+
+        let slot = dayIndex * 3 + i;
+        let categoryIndex = slot % 10;
+        let questionIndex = Math.floor(slot / 10);
+
+        if(questionIndex >= 1000) continue;
+
+        let correct = 0;
+        let question = '';
+
+        let n = questionIndex;
+
+        switch(categoryIndex){
+
+            case 0: {
+                let quantity = 5 + (n * 7) % 50;
+                let price = (3 + (n * 11) % 40) * difficulty;
+                correct = quantity * price;
+
+                question = 'Компания продала ' + quantity +
+                    ' товаров по ' + price +
+                    ' NEX. Какова общая выручка?';
+                break;
+            }
+
+            case 1: {
+                let income = (500 + (n * 13) % 3000) * difficulty;
+                let expenses = (100 + (n * 7) % 300) * difficulty;
+                correct = income - expenses;
+
+                question = 'Доход компании ' + income +
+                    ' NEX, расходы ' + expenses +
+                    ' NEX. Какая прибыль?';
+                break;
+            }
+
+            case 2: {
+                let buy = (10 + (n * 3) % 100) * difficulty;
+                let sell = buy + (1 + n % 15) * difficulty;
+                let quantity = 1 + (n * 5) % 20;
+                correct = (sell - buy) * quantity;
+
+                question = 'Актив купили за ' + buy +
+                    ' NEX и продали за ' + sell +
+                    ' NEX. Куплено ' + quantity +
+                    ' единиц. Какова прибыль?';
+                break;
+            }
+
+            case 3: {
+                let tokens = 2 + n % 40;
+                let price = (2 + (n * 11) % 50) * difficulty;
+                correct = tokens * price;
+
+                question = 'У игрока ' + tokens +
+                    ' токенов стоимостью ' + price +
+                    ' NEX каждый. Сколько они стоят вместе?';
+                break;
+            }
+
+            case 4: {
+                let investment = (100 + (n * 17) % 900) * difficulty;
+                let rate = 2 + n % 18;
+                correct = Math.round(investment * rate / 100);
+
+                question = 'Инвестиция составляет ' + investment +
+                    ' NEX. Доходность ' + rate +
+                    '%. Какой доход получен?';
+                break;
+            }
+
+            case 5: {
+                let units = 10 + n % 100;
+                let cost = (2 + (n * 3) % 15) * difficulty;
+                correct = units * cost;
+
+                question = 'Произведено ' + units +
+                    ' изделий по себестоимости ' + cost +
+                    ' NEX. Каковы общие затраты?';
+                break;
+            }
+
+            case 6: {
+                let cost = (10 + (n * 7) % 100) * difficulty;
+                let markup = 5 + n % 40;
+                correct = cost + Math.round(cost * markup / 100);
+
+                question = 'Закупочная стоимость товара ' + cost +
+                    ' NEX. Наценка составляет ' + markup +
+                    '%. Какова цена продажи?';
+                break;
+            }
+
+            case 7: {
+                let fixed = (100 + (n * 11) % 500) * difficulty;
+                let price = (20 + (n * 3) % 40) * difficulty;
+                let variable = (2 + (n * 5) % 10) * difficulty;
+
+                correct = Math.ceil(fixed / (price - variable));
+
+                question = 'Постоянные расходы ' + fixed +
+                    ' NEX. Цена товара ' + price +
+                    ' NEX, переменные затраты ' + variable +
+                    ' NEX. Сколько товаров нужно продать для безубыточности?';
+                break;
+            }
+
+            case 8: {
+                let employees = 2 + n % 10;
+                let orders = 3 + (n * 7) % 30;
+                correct = employees * orders;
+
+                question = employees +
+                    ' сотрудников выполняют по ' + orders +
+                    ' заказов каждый. Сколько заказов выполнит команда?';
+                break;
+            }
+
+            case 9: {
+                let market = (1000 + (n * 17) % 9000) * difficulty;
+                let share = 5 + n % 46;
+                correct = Math.round(market * share / 100);
+
+                question = 'Объём рынка ' + market +
+                    ' NEX. Доля компании ' + share +
+                    '%. Какой объём продаж у компании?';
+                break;
+            }
+        }
+
+        let id = categoryIndex + '_' + questionIndex;
+
+        let task = {
+            id: id,
+            category: taskCategories[categoryIndex],
+            title: 'Задание: ' + taskCategories[categoryIndex],
+            question: question,
+            answers: [
+                String(correct),
+                String(correct + 1)
+            ],
+            correct: 0
+        };
+
+        dailyTasks.push(task);
+
+        if(!usedTaskIds.includes(id)){
+            usedTaskIds.push(id);
+        }
     }
+
+    saveUsedTaskIds();
+
+    localStorage.setItem('nex_daily_tasks_date_v1', today);
+    localStorage.setItem(
+        'nex_daily_tasks_v1',
+        JSON.stringify(dailyTasks)
+    );
 
     renderDailyTasks();
 }
@@ -393,7 +570,7 @@ function answerDailyTask(taskIndex, answerIndex){
 
     completedDailyTasks[task.id] = true;
     localStorage.setItem(
-        'nex_daily_completed_v3',
+        'nex_daily_completed_v4',
         JSON.stringify(completedDailyTasks)
     );
 
@@ -410,7 +587,46 @@ function answerDailyTask(taskIndex, answerIndex){
     showToast('Задание выполнено! +20 XP и +40 NEX', 'success');
     renderDailyTasks();
 }
+function scheduleDailyTaskRefresh(){
 
+    let now = new Date();
+
+    let midnight = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate() + 1,
+        0, 0, 0
+    );
+
+    let delay = midnight.getTime() - now.getTime();
+
+    setTimeout(function(){
+
+        generateDailyTasks();
+
+        showToast('Появились новые ежедневные задания!', 'success');
+
+        scheduleDailyTaskRefresh();
+
+    }, delay);
+}
+
+scheduleDailyTaskRefresh();
+  document.addEventListener('visibilitychange', function(){
+
+    if(!document.hidden){
+
+        if(localStorage.getItem('nex_daily_tasks_date_v1') !== getTodayKey()){
+
+            generateDailyTasks();
+
+            showToast('Появились новые ежедневные задания!', 'success');
+
+        }
+
+    }
+
+});
 generateDailyTasks();
 
 function dailyBonus(){

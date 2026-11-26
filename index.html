@@ -243,14 +243,59 @@ input, textarea, select {
 </div>
 </section>
 </main>
+<section class="page" id="trade">
+    <h2>NEXUS TRADE</h2>
 
+    <div class="card">
+        <h3>NEX Coin</h3>
+        <div class="price" id="tradePrice">10.00 NEX</div>
+        <div class="muted">Виртуальный рынок</div>
+
+        <div id="candleChart" style="
+            height:220px;
+            background:#0b0811;
+            border:1px solid #39234f;
+            border-radius:15px;
+            margin-top:15px;
+            overflow:hidden;
+        ">
+        </div>
+
+        <p class="muted" id="tradeDirection">
+            Ожидание движения...
+        </p>
+    </div>
+
+    <div class="card">
+        <h3>Прогноз направления</h3>
+
+        <div class="actions">
+            <button onclick="makeTradePrediction('up')">
+                🟢 ВВЕРХ
+            </button>
+
+            <button class="secondary"
+                onclick="makeTradePrediction('down')">
+                🔴 ВНИЗ
+            </button>
+        </div>
+
+        <p class="muted" id="tradeTimer">
+            Раунд: ожидание
+        </p>
+
+        <p class="muted" id="tradeResult">
+            Выбери направление движения
+        </p>
+    </div>
+</section>
 <nav>
 <button class="active" onclick="showPage('exchange',this)">Биржа</button>
 <button onclick="showPage('tasks',this)">Задания</button>
+<button onclick="showPage('trade',this)">📈 Торговля</button>
 <button onclick="showPage('business',this)">Бизнес</button>
 <button onclick="showPage('profile',this)">Профиль</button>
 </nav>
-
 <p class="notice">NEX — виртуальные игровые очки. Не являются криптовалютой или деньгами. Данные демонстрационные и хранятся только в этой странице.</p>
 
 <script>
@@ -806,6 +851,104 @@ msg.closest('.card').remove();
 }
 
 hideCompletedTasks();
+  // NEXUS TRADE — виртуальный график
+let tradeChartPrice = 10;
+let tradeCandles = [];
+let tradePrediction = null;
+let tradeRound = 1;
+let tradeRoundStartPrice = 10;
+let tradeChartTimer = null;
+
+function drawTradeChart(){
+
+    const chart = document.getElementById('candleChart');
+    if(!chart) return;
+
+    chart.innerHTML = '';
+
+    const width = chart.clientWidth;
+    const height = chart.clientHeight;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+
+    chart.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+
+    const min = Math.min(...tradeCandles.map(c => c.low));
+    const max = Math.max(...tradeCandles.map(c => c.high));
+    const range = Math.max(max - min, 0.1);
+
+    const y = value =>
+        height - 15 - ((value - min) / range) * (height - 30);
+
+    const candleWidth = Math.max(4, width / 55);
+
+    tradeCandles.forEach((c, i) => {
+
+        const x = i * (candleWidth + 3) + 5;
+        const color = c.close >= c.open ? '#22c55e' : '#ef4444';
+
+        ctx.strokeStyle = color;
+        ctx.fillStyle = color;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x + candleWidth / 2, y(c.high));
+        ctx.lineTo(x + candleWidth / 2, y(c.low));
+        ctx.stroke();
+
+        const top = y(Math.max(c.open, c.close));
+        const bottom = y(Math.min(c.open, c.close));
+
+        ctx.fillRect(
+            x,
+            top,
+            candleWidth,
+            Math.max(3, bottom - top)
+        );
+    });
+}
+
+function updateTradeChart(){
+
+    const change = (Math.random() - 0.48) * 0.35;
+    const open = tradeChartPrice;
+
+    tradeChartPrice = Math.max(
+        1,
+        tradeChartPrice + change
+    );
+
+    tradeCandles.push({
+        open: open,
+        close: tradeChartPrice,
+        high: Math.max(open, tradeChartPrice) + Math.random() * 0.08,
+        low: Math.min(open, tradeChartPrice) - Math.random() * 0.08
+    });
+
+    if(tradeCandles.length > 45){
+        tradeCandles.shift();
+    }
+
+    const priceElement = document.getElementById('tradePrice');
+    if(priceElement){
+        priceElement.textContent =
+            tradeChartPrice.toFixed(2) + ' NEX';
+    }
+
+    drawTradeChart();
+}
+
+tradeChartTimer = setInterval(updateTradeChart, 1000);
+
+for(let i = 0; i < 30; i++){
+    updateTradeChart();
+}
 </script>
 </body>
 </html>

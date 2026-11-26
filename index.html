@@ -159,7 +159,7 @@ let level = Number(localStorage.getItem("nex_level")) || 1;
   let xp = Number(localStorage.getItem("nex_xp")) || 0;
   let playerLevel = Number(localStorage.getItem("nex_player_level")) || 1;
 let bonusUsed = localStorage.getItem('nex_bonus_used') === 'true';
-  let completedTasks = JSON.parse(localStorage.getItem('nex_completed_tasks') || '{}');
+  let completedTasks = JSON.parse(localStorage.getItem('nex_completed_tasks_v2') || '{}');
 let price=10;
 
 function update(){
@@ -233,7 +233,7 @@ return;
 }
 
 completedTasks[task] = true;
-localStorage.setItem('nex_completed_tasks', JSON.stringify(completedTasks));
+localStorage.setItem('nex_completed_tasks_v2', JSON.stringify(completedTasks));
 
 balance += rewards[task].balance;
 xp += rewards[task].xp;

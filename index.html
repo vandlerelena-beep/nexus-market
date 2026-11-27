@@ -953,6 +953,8 @@ for(let i = 0; i < 30; i++){
 console.log('NEXUS TRADE: функция загружена');
 function makeTradePrediction(direction){
 
+  alert('Кнопка работает! Направление: ' + direction);
+
     if(tradePrediction !== null){
         showToast('Дождись завершения раунда!', 'error');
         return;
